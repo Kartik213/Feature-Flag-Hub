@@ -71,6 +71,7 @@ export default function LoginPage() {
               <Label htmlFor="password">Password</Label>
               <PasswordInput
                   id="password"
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

@@ -1,4 +1,4 @@
-import { Check, Flag, Zap, Shield, BarChart3, Users, Code } from "lucide-react";
+import { Flag, Zap, Shield, BarChart3, Users, Code } from "lucide-react";
 
 const FEATURES = [
   { icon: Flag, text: "Unlimited feature flags" },
@@ -19,7 +19,7 @@ export const FeatureHighlights = () => {
             {FEATURES.map(({ icon: Icon, text }) => (
               <li key={text} className="flex items-center gap-3">
                 <div className="flex items-center justify-center size-5 rounded-full bg-primary/10 shrink-0">
-                  <Check className="size-3 text-primary" />
+                  <Icon className="size-3 text-primary" />
                 </div>
                 <span className="text-sm text-foreground">{text}</span>
               </li>

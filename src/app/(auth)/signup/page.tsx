@@ -19,7 +19,6 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const passwordRules = [
     { test: (p: string) => p.length >= 8, label: "At least 8 characters" },
@@ -99,6 +98,7 @@ export default function SignupPage() {
               <Label htmlFor="password">Password</Label>
               <PasswordInput
                   id="password"
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
