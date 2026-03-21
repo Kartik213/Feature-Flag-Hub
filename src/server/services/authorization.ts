@@ -76,3 +76,37 @@ export async function requireProjectAccess(
 
   return project;
 }
+
+export async function requireApiKeyAccess(
+  database: DatabaseClient,
+  apiKeyId: string,
+  userId: string,
+) {
+  const apiKey = await database.apiKey.findFirst({
+    where: {
+      id: apiKeyId,
+      project: {
+        organization: {
+          members: {
+            some: { userId },
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      projectId: true,
+      keyPrefix: true,
+      name: true,
+    },
+  });
+
+  if (!apiKey) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You do not have access to this API key.",
+    });
+  }
+
+  return apiKey;
+}

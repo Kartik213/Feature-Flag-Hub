@@ -118,4 +118,16 @@ model Project {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name           String
   createdAt      DateTime     @default(now())
+  
+  apiKey      ApiKey?
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  projectId String   @unique
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  keyHash   String   @unique
+  keyPrefix String
+  createdAt DateTime @default(now())
 }

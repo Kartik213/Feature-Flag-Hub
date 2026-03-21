@@ -65,7 +65,7 @@ export default function OrgPage() {
               className="bg-card ring-foreground/10 hover:ring-primary/20 group flex items-center gap-4 rounded-xl p-4 ring-1 transition-all"
             >
               <Link
-                href={`/org/${orgSlug}/project/${project.id}`}
+                href={`/projects/${project.id}`}
                 className="flex min-w-0 flex-1 items-center gap-4"
               >
                 <div className="bg-primary/10 text-primary group-hover:bg-primary/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors">
@@ -92,7 +92,7 @@ export default function OrgPage() {
                 </Button>
               </div>
 
-              <Link href={`/org/${orgSlug}/project/${project.id}`} className="shrink-0">
+              <Link href={`/projects/${project.id}`} className="shrink-0">
                 <ChevronRight className="text-muted-foreground group-hover:text-primary size-4 transition-colors" />
               </Link>
             </div>

@@ -46,8 +46,18 @@ export const projectsRouter = router({
   get: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
     const userId = ctx.session.user.id;
     const project = await requireProjectAccess(ctx.db, input.id, userId);
-
-    return ctx.db.project.findUniqueOrThrow({ where: { id: project.id } });
+    return ctx.db.project.findUniqueOrThrow({
+      where: { id: project.id },
+      include: {
+        organization: {
+          select: {
+            name: true,
+            slug: true,
+          },
+        },
+        apiKey: true
+      },
+    });
   }),
 
   delete: protectedProcedure
