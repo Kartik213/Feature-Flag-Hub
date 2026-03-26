@@ -22,7 +22,7 @@ export const apiKeyRouter = router({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       await requireProjectAccess(ctx.db, input.projectId, userId);
-      
+
       const rawKey = generateApiKey();
       const keyHash = hashKey(rawKey);
       const keyPrefix = rawKey.slice(0, 12);
@@ -30,7 +30,7 @@ export const apiKeyRouter = router({
       // Enforce single API key per project: delete any existing one
       // Since projectId is now unique, we can easily delete the existing one if it exists
       await ctx.db.apiKey.deleteMany({
-        where: { projectId: input.projectId }
+        where: { projectId: input.projectId },
       });
 
       const apiKey = await ctx.db.apiKey.create({

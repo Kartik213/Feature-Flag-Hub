@@ -21,7 +21,9 @@ export function CreateApiKeyForm({ projectId, onSuccess, onCancel }: CreateApiKe
   const createKey = trpc.apiKeys.create.useMutation({
     onSuccess: (data) => {
       utils.apiKeys.list.invalidate({ projectId });
-      onSuccess?.(data.key);
+      setTimeout(() => {
+        onSuccess?.(data.key);
+      }, 600);
     },
   });
 
@@ -51,7 +53,15 @@ export function CreateApiKeyForm({ projectId, onSuccess, onCancel }: CreateApiKe
           className="h-9 text-[13px]"
         />
       </div>
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex justify-start gap-2 pt-2">
+        <Button
+          type="submit"
+          disabled={createKey.isPending}
+          size="sm"
+          className="h-9 px-6 text-[13px]"
+        >
+          {createKey.isPending ? "Creating..." : "Create API Key"}
+        </Button>
         {onCancel && (
           <Button
             type="button"
@@ -63,14 +73,6 @@ export function CreateApiKeyForm({ projectId, onSuccess, onCancel }: CreateApiKe
             Cancel
           </Button>
         )}
-        <Button
-          type="submit"
-          disabled={createKey.isPending}
-          size="sm"
-          className="h-9 px-6 text-[13px]"
-        >
-          {createKey.isPending ? "Creating..." : "Create API Key"}
-        </Button>
       </div>
     </form>
   );

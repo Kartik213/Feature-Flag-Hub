@@ -55,7 +55,7 @@ export const projectsRouter = router({
             slug: true,
           },
         },
-        apiKey: true
+        apiKey: true,
       },
     });
   }),

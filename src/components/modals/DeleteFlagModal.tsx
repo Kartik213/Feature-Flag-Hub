@@ -6,32 +6,32 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AppModal } from "@/components/AppModal";
 import { AlertCircle } from "lucide-react";
 
-interface DeleteApiKeyModalProps {
+interface DeleteFlagModalProps {
   projectId: string;
   deleteTarget: { id: string; name: string } | null;
   setDeleteTarget: (target: { id: string; name: string } | null) => void;
   onSuccess?: () => void;
 }
 
-export function DeleteApiKeyModal({
+export function DeleteFlagModal({
   projectId,
   deleteTarget,
   setDeleteTarget,
   onSuccess,
-}: DeleteApiKeyModalProps) {
+}: DeleteFlagModalProps) {
   const utils = trpc.useUtils();
 
-  const revokeKey = trpc.apiKeys.revoke.useMutation({
+  const deleteFlag = trpc.flags.delete.useMutation({
     onSuccess: () => {
-      utils.apiKeys.list.invalidate({ projectId });
+      utils.flags.list.invalidate({ projectId });
       setDeleteTarget(null);
       onSuccess?.();
     },
   });
 
-  const handleRevoke = () => {
+  const handleDelete = () => {
     if (deleteTarget) {
-      revokeKey.mutate({ id: deleteTarget.id });
+      deleteFlag.mutate({ id: deleteTarget.id });
     }
   };
 
@@ -39,19 +39,19 @@ export function DeleteApiKeyModal({
     <AppModal
       open={!!deleteTarget}
       onOpenChange={(open) => !open && setDeleteTarget(null)}
-      title="Revoke API Key"
+      title="Delete Feature Flag"
       description={
         <>
-          Are you sure you want to revoke the API key{" "}
-          <span className="text-foreground font-semibold">{deleteTarget?.name}</span>? This will
-          immediately disable any applications using this key.
+          Are you sure you want to delete the flag{" "}
+          <span className="text-foreground font-mono font-semibold">{deleteTarget?.name}</span>?
+          This action is irreversible and will remove all targeting rules.
         </>
       }
     >
-      {revokeKey.error && (
+      {deleteFlag.error && (
         <Alert variant="destructive" className="mb-4 py-2">
           <AlertCircle className="size-4" />
-          <AlertDescription className="text-xs">{revokeKey.error.message}</AlertDescription>
+          <AlertDescription className="text-xs">{deleteFlag.error.message}</AlertDescription>
         </Alert>
       )}
       <div className="flex justify-end gap-2 text-[13px]">
@@ -66,11 +66,11 @@ export function DeleteApiKeyModal({
         <Button
           variant="destructive"
           size="sm"
-          onClick={handleRevoke}
-          disabled={revokeKey.isPending}
+          onClick={handleDelete}
+          disabled={deleteFlag.isPending}
           className="h-9 px-6 text-[13px]"
         >
-          {revokeKey.isPending ? "Revoking..." : "Revoke Key"}
+          {deleteFlag.isPending ? "Deleting..." : "Delete Flag"}
         </Button>
       </div>
     </AppModal>

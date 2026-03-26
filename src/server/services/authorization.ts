@@ -110,3 +110,32 @@ export async function requireApiKeyAccess(
 
   return apiKey;
 }
+
+export async function requireFlagAccess(database: DatabaseClient, flagId: string, userId: string) {
+  const flag = await database.featureFlag.findFirst({
+    where: {
+      id: flagId,
+      project: {
+        organization: {
+          members: {
+            some: { userId },
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      projectId: true,
+    },
+  });
+
+  if (!flag) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You do not have access to this feature flag.",
+    });
+  }
+
+  return flag;
+}

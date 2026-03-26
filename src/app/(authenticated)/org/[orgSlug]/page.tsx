@@ -6,9 +6,8 @@ import Link from "next/link";
 import { trpc } from "@/lib/trpc-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FolderOpen, ChevronRight, Trash2 } from "lucide-react";
+import { FolderOpen, ChevronRight } from "lucide-react";
 import { CreateProjectModal } from "@/components/modals/CreateProjectModal";
-import { DeleteProjectModal } from "@/components/modals/DeleteProjectModal";
 
 export default function OrgPage() {
   const { orgSlug } = useParams<{ orgSlug: string }>();
@@ -17,9 +16,6 @@ export default function OrgPage() {
   });
 
   const [showCreate, setShowCreate] = useState(false);
-
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
@@ -33,12 +29,6 @@ export default function OrgPage() {
       </div>
 
       <CreateProjectModal open={showCreate} onOpenChange={setShowCreate} orgSlug={orgSlug} />
-
-      <DeleteProjectModal
-        orgSlug={orgSlug}
-        deleteTarget={deleteTarget}
-        setDeleteTarget={setDeleteTarget}
-      />
 
       {isPending ? (
         <div className="text-muted-foreground py-12 text-center text-sm">Loading projects...</div>
@@ -78,20 +68,6 @@ export default function OrgPage() {
                   </div>
                 </div>
               </Link>
-
-              <div className="flex shrink-0 items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive hover:text-destructive size-8 transition-colors"
-                  onClick={() => {
-                    setDeleteTarget({ id: project.id, name: project.name });
-                  }}
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
-              </div>
-
               <Link href={`/projects/${project.id}`} className="shrink-0">
                 <ChevronRight className="text-muted-foreground group-hover:text-primary size-4 transition-colors" />
               </Link>

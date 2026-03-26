@@ -44,7 +44,8 @@ export function DeleteProjectModal({
         <>
           Are you sure you want to delete{" "}
           <span className="text-foreground font-semibold">{deleteTarget?.name}</span>? This action
-          is irreversible.
+          is irreversible. All feature flags and data within this project will be permanently
+          removed.
         </>
       }
     >

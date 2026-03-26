@@ -120,6 +120,7 @@ model Project {
   createdAt      DateTime     @default(now())
   
   apiKey      ApiKey?
+  featureFlags FeatureFlag[]
 }
 
 model ApiKey {
@@ -130,4 +131,18 @@ model ApiKey {
   keyHash   String   @unique
   keyPrefix String
   createdAt DateTime @default(now())
+}
+
+model FeatureFlag {
+  id                String     @id @default(cuid())
+  projectId         String
+  project           Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name              String
+  description       String?
+  enabled           Boolean    @default(false)
+  rolloutPercentage Int        @default(0)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@unique([projectId, name])
 }

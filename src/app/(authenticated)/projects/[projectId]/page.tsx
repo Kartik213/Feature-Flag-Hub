@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { trpc } from "@/lib/trpc-client";
 import { Button } from "@/components/ui/button";
@@ -15,14 +16,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Flag } from "lucide-react";
+import { Flag, Key } from "lucide-react";
+import { DeleteProjectModal } from "@/components/modals/DeleteProjectModal";
+import { DeleteFlagModal } from "@/components/modals/DeleteFlagModal";
 
 export default function ProjectPage() {
   const { projectId } = useParams<{ projectId: string }>();
+  const router = useRouter();
   const utils = trpc.useUtils();
   const { data: project } = trpc.projects.get.useQuery({ id: projectId });
-  const flags: any = [];
-  const isPending = false;
+  const { data: flags, isPending } = trpc.flags.list.useQuery({ projectId });
+
+  const [deleteProjectTarget, setDeleteProjectTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  const [deleteFlagTarget, setDeleteFlagTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  const updateFlag = trpc.flags.update.useMutation({
+    onSuccess: () => utils.flags.list.invalidate({ projectId }),
+  });
 
   return (
     <div>
@@ -41,34 +58,76 @@ export default function ProjectPage() {
           <p className="text-muted-foreground mt-1 text-sm">Manage feature flags</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Link href={`/projects/${projectId}/api-keys`}>API Keys</Link>
+          {project && (
+            <DeleteProjectModal
+              orgSlug={project.organization.slug || ""}
+              deleteTarget={deleteProjectTarget}
+              setDeleteTarget={setDeleteProjectTarget}
+              onSuccess={() => router.push(`/org/${project.organization.slug}`)}
+            />
+          )}
+          <Button
+            variant="outline"
+            className="text-destructive hover:text-destructive cursor-pointer"
+            onClick={() => {
+              if (project) {
+                setDeleteProjectTarget({ id: project.id, name: project.name });
+              }
+            }}
+          >
+            Delete
           </Button>
-          <Button>
-            <Link href={`/projects/${projectId}/flags/new`}>+ New Flag</Link>
+          <Button variant="outline" asChild>
+            <Link href={`/projects/${projectId}/api-key`}>API Key</Link>
           </Button>
+          {project?.apiKey && (
+            <Button asChild>
+              <Link href={`/projects/${projectId}/flags/new`}>+ New Flag</Link>
+            </Button>
+          )}
         </div>
       </div>
+
+      <DeleteFlagModal
+        projectId={projectId}
+        deleteTarget={deleteFlagTarget}
+        setDeleteTarget={setDeleteFlagTarget}
+      />
 
       {isPending ? (
         <div className="text-muted-foreground py-12 text-center text-sm">Loading flags...</div>
       ) : !flags?.length ? (
         <Card className="py-16 text-center">
-          <CardContent>
-            <div className="bg-primary/10 mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl">
-              <Flag className="text-primary size-5" />
-            </div>
-            <h3 className="mb-1 font-medium">No feature flags yet</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Create your first flag to control feature rollout.
-            </p>
-            <Button>
-              <Link href={`/projects/${projectId}/flags/new`}>+ New Flag</Link>
-            </Button>
-          </CardContent>
+          {project?.apiKey ? (
+            <CardContent>
+              <div className="bg-primary/10 mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl">
+                <Flag className="text-primary size-5" />
+              </div>
+              <h3 className="mb-1 font-medium">No feature flags yet</h3>
+              <p className="text-muted-foreground mb-4 text-sm">
+                Create your first flag to control feature rollout.
+              </p>
+              <Button asChild>
+                <Link href={`/projects/${projectId}/flags/new`}>+ New Flag</Link>
+              </Button>
+            </CardContent>
+          ) : (
+            <CardContent>
+              <div className="bg-primary/10 mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl">
+                <Key className="text-primary size-5" />
+              </div>
+              <h3 className="mb-1 font-medium">No API key yet</h3>
+              <p className="text-muted-foreground mb-4 text-sm">
+                Create an API key to use the SDK.
+              </p>
+              <Button asChild>
+                <Link href={`/projects/${projectId}/api-key`}>+ Create API Key</Link>
+              </Button>
+            </CardContent>
+          )}
         </Card>
       ) : (
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden px-5">
           <Table>
             <TableHeader>
               <TableRow>
@@ -96,31 +155,28 @@ export default function ProjectPage() {
                   <TableCell>
                     <Switch
                       checked={flag.enabled}
+                      onCheckedChange={() =>
+                        updateFlag.mutate({ id: flag.id, enabled: !flag.enabled })
+                      }
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="bg-muted h-1.5 w-16 overflow-hidden rounded-full">
-                        <div
-                          className="bg-primary h-full rounded-full"
-                          style={{ width: `${flag.rolloutPercentage}%` }}
-                        />
-                      </div>
-                      <span className="text-muted-foreground font-mono text-xs">
-                        {flag.rolloutPercentage}%
-                      </span>
-                    </div>
+                    <p className="text-muted-foreground font-mono text-xs">
+                      {flag.rolloutPercentage}%
+                    </p>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">
+                    {/* <Badge variant="secondary">
                       {flag.rules.length} rule{flag.rules.length !== 1 && "s"}
-                    </Badge>
+                    </Badge> */}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
                       variant="destructive"
                       size="xs"
-                      onClick={() => {}}
+                      onClick={() => {
+                        setDeleteFlagTarget({ id: flag.id, name: flag.name });
+                      }}
                     >
                       Delete
                     </Button>
