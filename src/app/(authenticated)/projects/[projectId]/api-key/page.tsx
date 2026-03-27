@@ -16,10 +16,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Check, Key, Copy, RefreshCw, Trash2 } from "lucide-react";
+import { Check, Copy, RefreshCw, Trash2 } from "lucide-react";
 import { DeleteApiKeyModal } from "@/components/modals/DeleteApiKeyModal";
 import { CreateApiKeyForm } from "@/components/forms/CreateApiKeyForm";
 import { useRouter } from "next/navigation";
+
+const SDK_INSTALL_COMMAND = "npm install featureflaghub-sdk";
 
 export default function SettingsPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -31,6 +33,8 @@ export default function SettingsPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [newKey, setNewKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedBaseUrl, setCopiedBaseUrl] = useState(false);
+  const [copiedCommand, setCopiedCommand] = useState(false);
 
   const copyKey = () => {
     if (newKey) {
@@ -38,6 +42,20 @@ export default function SettingsPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const copyBaseUrl = () => {
+    const baseUrl =
+      typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+    navigator.clipboard.writeText(baseUrl);
+    setCopiedBaseUrl(true);
+    setTimeout(() => setCopiedBaseUrl(false), 2000);
+  };
+
+  const copyCommand = () => {
+    navigator.clipboard.writeText(SDK_INSTALL_COMMAND);
+    setCopiedCommand(true);
+    setTimeout(() => setCopiedCommand(false), 2000);
   };
 
   return (
@@ -159,6 +177,33 @@ export default function SettingsPage() {
                   </TableCell>
                 </TableRow>
                 <TableRow className="border-t hover:bg-transparent">
+                  <TableCell className="text-muted-foreground w-1/4 py-4 pl-6 text-[13px] font-medium">
+                    Base URL
+                  </TableCell>
+                  <TableCell className="py-4 font-mono text-[13px]">
+                    <div className="text-muted-foreground flex items-center gap-2">
+                      <span>
+                        {typeof window !== "undefined"
+                          ? window.location.origin
+                          : "http://localhost:3000"}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        className="text-muted-foreground hover:text-primary -ml-1 transition-colors"
+                        onClick={copyBaseUrl}
+                        title="Copy Base URL"
+                      >
+                        {copiedBaseUrl ? (
+                          <Check className="size-3 text-emerald-600" />
+                        ) : (
+                          <Copy className="size-3" />
+                        )}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+                <TableRow className="border-t hover:bg-transparent">
                   <TableCell className="text-muted-foreground py-4 pl-6 text-[13px] font-medium">
                     Created
                   </TableCell>
@@ -206,9 +251,16 @@ export default function SettingsPage() {
               <div className="text-muted-foreground mb-2 text-[11px] font-semibold tracking-wider uppercase">
                 Install
               </div>
-              <pre className="bg-card ring-foreground/5 overflow-x-auto rounded-lg border p-3 font-mono text-xs ring-1">
-                npm install featureflaghub-sdk
-              </pre>
+              <div className="flex items-center w-fit gap-5 bg-card ring-foreground/5 rounded-lg border ring-1 pl-3">
+                <pre className="overflow-x-auto font-mono text-xs">{SDK_INSTALL_COMMAND}</pre>
+                <Button
+                  variant="outline"
+                  onClick={copyCommand}
+                  className="shrink-0 text-[13px]"
+                >
+                  {copiedCommand ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4" />}
+                </Button>
+              </div>
             </div>
 
             <div>

@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../trpc";
-import { requireFlagAccess, requireProjectAccess } from "@/server/services/authorization";
+import {
+  requireFlagAccess,
+  requireProjectAccess,
+  requireRuleAccess,
+} from "@/server/services/authorization";
 
 export const flagsRouter = router({
   create: protectedProcedure
@@ -41,6 +45,7 @@ export const flagsRouter = router({
             },
           },
         },
+        include: { rules: true },
         orderBy: { createdAt: "desc" },
       });
     }),
@@ -51,6 +56,7 @@ export const flagsRouter = router({
 
     return ctx.db.featureFlag.findUniqueOrThrow({
       where: { id: flag.id },
+      include: { rules: true },
     });
   }),
 
@@ -83,6 +89,35 @@ export const flagsRouter = router({
       const flag = await requireFlagAccess(ctx.db, input.id, userId);
 
       await ctx.db.featureFlag.delete({ where: { id: flag.id } });
+
+      return { success: true };
+    }),
+
+  addRule: protectedProcedure
+    .input(
+      z.object({
+        flagId: z.string(),
+        attribute: z.string().min(1),
+        operator: z.enum(["equals", "not_equals", "contains", "ends_with", "starts_with", "in"]),
+        value: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const flag = await requireFlagAccess(ctx.db, input.flagId, userId);
+
+      const rule = await ctx.db.flagRule.create({ data: input });
+
+      return rule;
+    }),
+
+  removeRule: protectedProcedure
+    .input(z.object({ ruleId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const rule = await requireRuleAccess(ctx.db, input.ruleId, userId);
+
+      await ctx.db.flagRule.delete({ where: { id: rule.id } });
 
       return { success: true };
     }),

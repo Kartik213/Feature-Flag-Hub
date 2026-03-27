@@ -144,5 +144,17 @@ model FeatureFlag {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
+  rules             FlagRule[]
+
   @@unique([projectId, name])
+}
+
+model FlagRule {
+  id        String      @id @default(cuid())
+  flagId    String
+  flag      FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+  attribute String
+  operator  String
+  value     String
+  createdAt DateTime    @default(now())
 }

@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+
 import { db } from "@/lib/prisma";
 
 type DatabaseClient = typeof db;
@@ -138,4 +139,40 @@ export async function requireFlagAccess(database: DatabaseClient, flagId: string
   }
 
   return flag;
+}
+
+export async function requireRuleAccess(database: DatabaseClient, ruleId: string, userId: string) {
+  const rule = await database.flagRule.findFirst({
+    where: {
+      id: ruleId,
+      flag: {
+        project: {
+          organization: {
+            members: {
+              some: { userId },
+            },
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      flag: {
+        select: {
+          id: true,
+          name: true,
+          projectId: true,
+        },
+      },
+    },
+  });
+
+  if (!rule) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You do not have access to this targeting rule.",
+    });
+  }
+
+  return rule;
 }

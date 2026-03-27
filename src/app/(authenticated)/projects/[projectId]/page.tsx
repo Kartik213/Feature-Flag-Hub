@@ -166,9 +166,9 @@ export default function ProjectPage() {
                     </p>
                   </TableCell>
                   <TableCell>
-                    {/* <Badge variant="secondary">
+                    <Badge variant="secondary">
                       {flag.rules.length} rule{flag.rules.length !== 1 && "s"}
-                    </Badge> */}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
