@@ -1,93 +1,25 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FeatureHighlights } from "@/components/FeatureHighlights";
-import { AlertCircle } from "lucide-react";
-import { PasswordInput } from "@/components/ui/password-input";
+import { LoginForm } from "@/components/forms/LoginForm";
+import { redirect } from "next/navigation";
+import { auth } from "@/server/auth";
+import { headers } from "next/headers";
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.SubmitEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    const { error } = await authClient.signIn.email({ email, password });
-
-    if (error) {
-      setError(error.message ?? "Login failed");
-      setLoading(false);
-      return;
-    }
-
-    router.push("/");
-  };
-
+export default async function LoginPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (session) {
+    redirect("/");
+  }
   return (
     <div className="w-full max-w-4xl">
       <div className="ring-border bg-card flex overflow-hidden rounded-2xl shadow-sm ring-1">
-        {/* Left: Form */}
         <div className="flex-1 p-10">
+        {/* Left: Form */}
           <h1 className="mb-1 text-2xl font-bold">Welcome back</h1>
           <p className="text-muted-foreground mb-8 text-sm">
             Sign in to manage your feature flags.
           </p>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="size-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="you@company.com"
-                className="h-10"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
-              <PasswordInput
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="Your password"
-                className="h-10 pr-10"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="h-11 w-full text-sm font-semibold"
-              size="lg"
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </Button>
-          </form>
+          <LoginForm />
         </div>
 
         {/* Right: Feature highlights */}
